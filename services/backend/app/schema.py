@@ -1,4 +1,5 @@
-from typing import Optional
+from datetime import datetime
+from typing import Optional, List
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -18,3 +19,76 @@ class IntakeResponse(BaseModel):
     sku_id: UUID
     sku_code: str
     on_hand: int
+
+
+class SKUResponse(BaseModel):
+    id: UUID
+    sku_code: str
+    title: Optional[str]
+    description: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class StockLevelDetail(BaseModel):
+    location_code: Optional[str]
+    location_name: Optional[str]
+    on_hand: int
+    reserved: int
+
+
+class SKUDetailResponse(BaseModel):
+    id: UUID
+    sku_code: str
+    title: Optional[str]
+    description: Optional[str]
+    created_at: datetime
+    barcodes: List[str]
+    stock_levels: List[StockLevelDetail]
+
+    class Config:
+        from_attributes = True
+
+
+class SKUListResponse(BaseModel):
+    items: List[SKUResponse]
+    total: int
+    skip: int
+    limit: int
+
+
+class StockLevelResponse(BaseModel):
+    sku_id: UUID
+    sku_code: str
+    location_id: Optional[UUID]
+    location_code: Optional[str]
+    on_hand: int
+    reserved: int
+    available: int
+
+
+class MovementResponse(BaseModel):
+    id: UUID
+    sku_id: UUID
+    sku_code: str
+    location_id: Optional[UUID]
+    location_code: Optional[str]
+    qty: int
+    movement_type: str
+    barcode: Optional[str]
+    batch: Optional[str]
+    reference_id: Optional[str]
+    created_by: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class MovementListResponse(BaseModel):
+    items: List[MovementResponse]
+    total: int
+    skip: int
+    limit: int

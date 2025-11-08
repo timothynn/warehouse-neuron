@@ -1,0 +1,433 @@
+{
+	"info": {
+		"_postman_id": "warehouse-neuron-api",
+		"name": "Warehouse Neuron API",
+		"description": "Complete API collection for Warehouse Neuron inventory management system.\n\n**Base URL:** http://localhost:8000\n\n**Authentication:** None (Phase A - coming in Phase B)\n\n**Features:**\n- Health checks\n- Stock intake operations\n- Barcode scanning simulation",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health & Status",
+			"item": [
+				{
+					"name": "Root - API Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Returns basic API information and status."
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"message\": \"Warehouse Neuron API\",\n  \"status\": \"running\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Checks if the API service is healthy and responsive."
+					},
+					"response": [
+						{
+							"name": "Healthy",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/health",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"health"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"status\": \"healthy\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Stock Operations",
+			"item": [
+				{
+					"name": "Stock Intake - Auto-Create SKU",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"barcode\": \"TEST-001\",\n  \"qty\": 10,\n  \"location_code\": \"WH-A-01\",\n  \"movement_type\": \"IN\",\n  \"auto_create_sku\": true,\n  \"created_by\": \"test_user@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/stock/intake",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"stock",
+								"intake"
+							]
+						},
+						"description": "Process a stock intake operation. If the SKU doesn't exist and `auto_create_sku` is true, a new SKU will be created."
+					},
+					"response": [
+						{
+							"name": "Success - New SKU Created",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"barcode\": \"TEST-001\",\n  \"qty\": 10,\n  \"location_code\": \"WH-A-01\",\n  \"movement_type\": \"IN\",\n  \"auto_create_sku\": true,\n  \"created_by\": \"test_user@example.com\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/stock/intake",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"stock",
+										"intake"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"movement_id\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"sku_id\": \"123e4567-e89b-12d3-a456-426614174001\",\n  \"sku_code\": \"TEST-001\",\n  \"on_hand\": 10\n}"
+						}
+					]
+				},
+				{
+					"name": "Stock Intake - Existing SKU",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"barcode\": \"TEST-001\",\n  \"qty\": 5,\n  \"location_code\": \"WH-A-01\",\n  \"movement_type\": \"IN\",\n  \"auto_create_sku\": false,\n  \"created_by\": \"warehouse@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/stock/intake",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"stock",
+								"intake"
+							]
+						},
+						"description": "Add stock to an existing SKU. Will fail if SKU doesn't exist and `auto_create_sku` is false."
+					},
+					"response": [
+						{
+							"name": "Success - Added to Existing",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"barcode\": \"TEST-001\",\n  \"qty\": 5,\n  \"location_code\": \"WH-A-01\",\n  \"movement_type\": \"IN\",\n  \"auto_create_sku\": false,\n  \"created_by\": \"warehouse@example.com\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/stock/intake",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"stock",
+										"intake"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"movement_id\": \"123e4567-e89b-12d3-a456-426614174002\",\n  \"sku_id\": \"123e4567-e89b-12d3-a456-426614174001\",\n  \"sku_code\": \"TEST-001\",\n  \"on_hand\": 15\n}"
+						},
+						{
+							"name": "Error - SKU Not Found",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"barcode\": \"UNKNOWN-001\",\n  \"qty\": 5,\n  \"auto_create_sku\": false\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/stock/intake",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"stock",
+										"intake"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n  \"detail\": \"SKU not found for barcode. Set auto_create_sku to true to create a new SKU.\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Stock Intake - Transfer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"barcode\": \"TEST-001\",\n  \"qty\": 50,\n  \"location_code\": \"WH-B-05\",\n  \"movement_type\": \"TRANSFER\",\n  \"auto_create_sku\": false,\n  \"created_by\": \"warehouse@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/stock/intake",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"stock",
+								"intake"
+							]
+						},
+						"description": "Transfer stock from one location to another."
+					},
+					"response": []
+				},
+				{
+					"name": "Stock Intake - Adjustment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"barcode\": \"TEST-001\",\n  \"qty\": -2,\n  \"location_code\": \"WH-A-01\",\n  \"movement_type\": \"ADJUSTMENT\",\n  \"auto_create_sku\": false,\n  \"created_by\": \"manager@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/stock/intake",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"stock",
+								"intake"
+							]
+						},
+						"description": "Adjust stock levels (e.g., for cycle counts, damaged goods). Use negative qty for reductions."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Test Scenarios",
+			"item": [
+				{
+					"name": "Scenario 1: New Product Receiving",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"barcode\": \"8901234567890\",\n  \"qty\": 100,\n  \"location_code\": \"RECV-01\",\n  \"movement_type\": \"IN\",\n  \"auto_create_sku\": true,\n  \"created_by\": \"receiver@warehouse.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/stock/intake",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"stock",
+								"intake"
+							]
+						},
+						"description": "Simulate receiving a new product at the receiving dock."
+					},
+					"response": []
+				},
+				{
+					"name": "Scenario 2: Move to Main Warehouse",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"barcode\": \"8901234567890\",\n  \"qty\": 100,\n  \"location_code\": \"WH-A-05\",\n  \"movement_type\": \"TRANSFER\",\n  \"auto_create_sku\": false,\n  \"created_by\": \"stocker@warehouse.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/stock/intake",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"stock",
+								"intake"
+							]
+						},
+						"description": "Move the received product from receiving to main warehouse storage."
+					},
+					"response": []
+				},
+				{
+					"name": "Scenario 3: Ship Out Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"barcode\": \"8901234567890\",\n  \"qty\": -25,\n  \"location_code\": \"WH-A-05\",\n  \"movement_type\": \"OUT\",\n  \"auto_create_sku\": false,\n  \"created_by\": \"shipper@warehouse.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/stock/intake",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"stock",
+								"intake"
+							]
+						},
+						"description": "Ship out an order, reducing stock levels."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		}
+	]
+}

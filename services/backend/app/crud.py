@@ -1,7 +1,8 @@
-from sqlalchemy import insert, select, update
+from sqlalchemy import insert, select, update, func
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from .models import SKU, Location, SKUBarcode, StockLedger, StockMovement
 
@@ -11,6 +12,113 @@ async def find_sku_by_barcode(session: AsyncSession, barcode: str):
     res = await session.execute(q)
     sku = res.scalars().first()
     return sku
+
+
+async def get_sku_by_id(session: AsyncSession, sku_id):
+    """Get SKU by ID."""
+    q = select(SKU).where(SKU.id == sku_id)
+    res = await session.execute(q)
+    return res.scalars().first()
+
+
+async def get_barcodes_for_sku(session: AsyncSession, sku_id):
+    """Get all barcodes for a SKU."""
+    q = select(SKUBarcode).where(SKUBarcode.sku_id == sku_id)
+    res = await session.execute(q)
+    return res.scalars().all()
+
+
+async def get_stock_levels_by_sku(session: AsyncSession, sku_id):
+    """Get all stock levels for a SKU across locations."""
+    q = (
+        select(StockLedger)
+        .options(selectinload(StockLedger.location))
+        .where(StockLedger.sku_id == sku_id)
+    )
+    res = await session.execute(q)
+    return res.scalars().all()
+
+
+async def list_skus(session: AsyncSession, skip: int = 0, limit: int = 50, search: str = None):
+    """List SKUs with pagination and optional search."""
+    q = select(SKU)
+    
+    if search:
+        search_pattern = f"%{search}%"
+        q = q.where(
+            (SKU.sku_code.ilike(search_pattern)) | (SKU.title.ilike(search_pattern))
+        )
+    
+    # Get total count
+    count_q = select(func.count()).select_from(q.subquery())
+    total_res = await session.execute(count_q)
+    total = total_res.scalar()
+    
+    # Get paginated results
+    q = q.offset(skip).limit(limit).order_by(SKU.created_at.desc())
+    res = await session.execute(q)
+    skus = res.scalars().all()
+    
+    return skus, total
+
+
+async def get_stock_levels(
+    session: AsyncSession, location_code: str = None, sku_code: str = None
+):
+    """Get stock levels with optional filters."""
+    q = (
+        select(StockLedger)
+        .options(selectinload(StockLedger.sku), selectinload(StockLedger.location))
+    )
+    
+    if location_code:
+        q = q.join(Location).where(Location.code == location_code)
+    
+    if sku_code:
+        q = q.join(SKU).where(SKU.sku_code == sku_code)
+    
+    res = await session.execute(q)
+    return res.scalars().all()
+
+
+async def list_movements(
+    session: AsyncSession,
+    skip: int = 0,
+    limit: int = 50,
+    movement_type: str = None,
+    sku_code: str = None,
+    location_code: str = None,
+    created_by: str = None,
+):
+    """List stock movements with filtering and pagination."""
+    q = (
+        select(StockMovement)
+        .options(selectinload(StockMovement.sku), selectinload(StockMovement.location))
+    )
+    
+    if movement_type:
+        q = q.where(StockMovement.movement_type == movement_type)
+    
+    if sku_code:
+        q = q.join(SKU).where(SKU.sku_code == sku_code)
+    
+    if location_code:
+        q = q.join(Location).where(Location.code == location_code)
+    
+    if created_by:
+        q = q.where(StockMovement.created_by == created_by)
+    
+    # Get total count
+    count_q = select(func.count()).select_from(q.subquery())
+    total_res = await session.execute(count_q)
+    total = total_res.scalar()
+    
+    # Get paginated results
+    q = q.offset(skip).limit(limit).order_by(StockMovement.created_at.desc())
+    res = await session.execute(q)
+    movements = res.scalars().all()
+    
+    return movements, total
 
 
 async def get_or_create_location(session: AsyncSession, code: str):
