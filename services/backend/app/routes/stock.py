@@ -3,6 +3,7 @@ from app import crud
 from app.config import settings
 from app.database import get_session
 from app.schema import IntakeRequest, IntakeResponse
+from app.cache import invalidate_stock_cache, invalidate_sku_cache
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -51,6 +52,10 @@ async def intake(payload: IntakeRequest, session: AsyncSession = Depends(get_ses
     )
 
     await session.commit()
+
+    # Invalidate relevant caches
+    await invalidate_stock_cache()
+    await invalidate_sku_cache()
 
     # Emit event
     await emit_event(

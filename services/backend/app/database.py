@@ -14,3 +14,10 @@ AsyncSessionLocal = sessionmaker(engine, expire_on_commit=False, class_=AsyncSes
 async def get_session() -> AsyncSession:
     async with AsyncSessionLocal() as session:
         yield session
+
+
+# Alias for compatibility with auth modules
+async def get_db() -> AsyncSession:
+    """Get database session (alias for get_session)"""
+    async with AsyncSessionLocal() as session:
+        yield session

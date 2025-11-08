@@ -2,7 +2,14 @@ from datetime import datetime
 from typing import Optional, List
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+
+from app.validators import (
+    validate_barcode,
+    validate_location_code,
+    validate_quantity,
+    validate_movement_type
+)
 
 
 class IntakeRequest(BaseModel):
@@ -12,6 +19,34 @@ class IntakeRequest(BaseModel):
     movement_type: Optional[str] = "IN"
     auto_create_sku: Optional[bool] = False
     created_by: Optional[str] = None
+    
+    @field_validator('barcode')
+    @classmethod
+    def validate_barcode_field(cls, v):
+        """Validate and normalize barcode format."""
+        return validate_barcode(v)
+    
+    @field_validator('qty')
+    @classmethod
+    def validate_qty_field(cls, v):
+        """Validate quantity is positive and reasonable."""
+        return validate_quantity(v)
+    
+    @field_validator('location_code')
+    @classmethod
+    def validate_location_field(cls, v):
+        """Validate and normalize location code format."""
+        if v is None:
+            return v
+        return validate_location_code(v)
+    
+    @field_validator('movement_type')
+    @classmethod
+    def validate_movement_field(cls, v):
+        """Validate movement type is allowed."""
+        if v is None:
+            return "IN"
+        return validate_movement_type(v)
 
 
 class IntakeResponse(BaseModel):

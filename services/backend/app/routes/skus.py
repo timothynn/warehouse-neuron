@@ -4,14 +4,20 @@ from uuid import UUID
 from app import crud
 from app.database import get_session
 from app.schema import SKUResponse, SKUListResponse, SKUDetailResponse
-from fastapi import APIRouter, Depends, HTTPException, Query
+from app.cache import cache_response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/api/v1/skus")
 
 
 @router.get("/{sku_id}", response_model=SKUDetailResponse)
-async def get_sku(sku_id: UUID, session: AsyncSession = Depends(get_session)):
+@cache_response(expire=300, key_prefix="sku")  # Cache for 5 minutes
+async def get_sku(
+    sku_id: UUID,
+    request: Request,
+    session: AsyncSession = Depends(get_session)
+):
     """Get detailed information about a specific SKU including stock levels."""
     sku = await crud.get_sku_by_id(session, sku_id)
     if not sku:
@@ -43,7 +49,9 @@ async def get_sku(sku_id: UUID, session: AsyncSession = Depends(get_session)):
 
 
 @router.get("", response_model=SKUListResponse)
+@cache_response(expire=300, key_prefix="sku")  # Cache for 5 minutes
 async def list_skus(
+    request: Request,
     skip: int = Query(0, ge=0, description="Number of records to skip"),
     limit: int = Query(50, ge=1, le=100, description="Maximum number of records to return"),
     search: Optional[str] = Query(None, description="Search by SKU code or title"),

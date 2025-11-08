@@ -4,19 +4,22 @@ from uuid import UUID
 from app import crud
 from app.database import get_session
 from app.schema import StockLevelResponse, MovementListResponse, MovementResponse
-from fastapi import APIRouter, Depends, HTTPException, Query
+from app.cache import cache_response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/api/v1/stock")
 
 
 @router.get("/levels", response_model=list[StockLevelResponse])
+@cache_response(expire=60, key_prefix="stock_levels")
 async def get_stock_levels(
+    request: Request,
     location_code: Optional[str] = Query(None, description="Filter by location code"),
     sku_code: Optional[str] = Query(None, description="Filter by SKU code"),
     session: AsyncSession = Depends(get_session),
 ):
-    """Get stock levels, optionally filtered by location or SKU."""
+    """Get stock levels, optionally filtered by location or SKU. Cached for 60 seconds."""
     levels = await crud.get_stock_levels(
         session, location_code=location_code, sku_code=sku_code
     )
@@ -36,7 +39,9 @@ async def get_stock_levels(
 
 
 @router.get("/movements", response_model=MovementListResponse)
+@cache_response(expire=30, key_prefix="stock_movements")
 async def list_movements(
+    request: Request,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     movement_type: Optional[str] = Query(None, description="Filter by movement type"),
@@ -45,7 +50,7 @@ async def list_movements(
     created_by: Optional[str] = Query(None, description="Filter by user"),
     session: AsyncSession = Depends(get_session),
 ):
-    """List stock movements with filtering and pagination."""
+    """List stock movements with filtering and pagination. Cached for 30 seconds."""
     movements, total = await crud.list_movements(
         session,
         skip=skip,

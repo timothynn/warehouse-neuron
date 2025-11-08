@@ -3,7 +3,7 @@ FastAPI dependencies for authentication and authorization
 """
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
 from app.database import get_db
@@ -18,7 +18,7 @@ security = HTTPBearer()
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> User:
     """
     Get the current authenticated user from JWT token.
@@ -47,7 +47,7 @@ async def get_current_user(
         )
     
     # Get user from database
-    user = crud_auth.get_user_by_id(db, user_id)
+    user = await crud_auth.get_user_by_id(db, user_id)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -76,7 +76,7 @@ async def get_current_active_user(
 
 async def get_optional_user(
     request: Request,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> Optional[User]:
     """
     Get the current user if authenticated, otherwise None.
@@ -100,7 +100,7 @@ async def get_optional_user(
         return None
     
     # Get user from database
-    user = crud_auth.get_user_by_id(db, user_id)
+    user = await crud_auth.get_user_by_id(db, user_id)
     if user is None or not user.is_active:
         return None
     
