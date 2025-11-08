@@ -16,10 +16,10 @@
           isort
           
           # Backend dependencies (add your app deps here as needed)
-          # fastapi
-          # uvicorn
-          # sqlalchemy
-          # pydantic
+          fastapi
+          uvicorn
+          sqlalchemy
+          pydantic
         ]);
       in
       {
@@ -27,10 +27,30 @@
           buildInputs = [
             pythonEnv
             pkgs.python3Packages.pip
+            pkgs.python3Packages.virtualenv
           ];
 
           shellHook = ''
+            # Create and activate venv automatically
+            VENV_DIR=".venv"
+            
+            if [ ! -d "$VENV_DIR" ]; then
+              echo "📦 Creating Python virtual environment..."
+              ${pythonEnv}/bin/python -m venv $VENV_DIR
+              echo "✅ Virtual environment created at $VENV_DIR"
+            fi
+            
+            # Activate the virtual environment
+            source $VENV_DIR/bin/activate
+            
+            # Upgrade pip in venv if needed
+            if [ ! -f "$VENV_DIR/.pip_upgraded" ]; then
+              pip install --upgrade pip > /dev/null 2>&1
+              touch $VENV_DIR/.pip_upgraded
+            fi
+            
             echo "🚀 Warehouse Neuron dev environment loaded"
+            echo "🐍 Python venv activated: $VENV_DIR"
             echo "📦 Available tools:"
             echo "  - black (Python formatter)"
             echo "  - isort (import sorter)"

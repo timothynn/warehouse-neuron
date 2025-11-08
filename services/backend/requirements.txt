@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+SQLAlchemy>=1.4
+asyncpg
+alembic
+databases>=0.9.0
+pydantic
+pydantic-settings
+redis>=5.0.0
+psycopg2-binary
+python-dotenv

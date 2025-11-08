@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: wn_user
+      POSTGRES_PASSWORD: wn_pass
+      POSTGRES_DB: warehouse_neuron
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: ./services/backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://wn_user:wn_pass@postgres:5432/warehouse_neuron
+      REDIS_URL: redis://redis:6379
+      APP_ENV: development
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+
+volumes:
+  postgres_data:
